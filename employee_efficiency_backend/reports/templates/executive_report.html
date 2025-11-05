@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Executive Report - Employee Efficiency</title>
+  <style>
+    body { font-family: Helvetica, Arial, sans-serif; font-size: 12px; }
+    h1 { color: #3b82f6; }
+    h2 { color: #111827; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
+    .section { margin: 12px 0; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #e5e7eb; padding: 6px; font-size: 11px; }
+    .muted { color: #64748b; }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; background: #e0f2fe; color: #0369a1; font-size: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Executive Report</h1>
+  <p class="muted">Generated: {{ generated_at }}</p>
+
+  <div class="section">
+    <h2>Dataset</h2>
+    <p>Filename: <strong>{{ dataset.filename }}</strong></p>
+    <p>Rows: <strong>{{ dataset.rows }}</strong> | Columns: <strong>{{ dataset.cols }}</strong></p>
+  </div>
+
+  <div class="section">
+    <h2>EDA Summary</h2>
+    {% if eda.shape %}
+      <p>Shape: rows={{ eda.shape.rows }}, cols={{ eda.shape.cols }}</p>
+    {% endif %}
+    {% if eda.numeric_summary %}
+      <h3>Numeric Summary (first 5 metrics)</h3>
+      <table>
+        <thead>
+          <tr><th>Column</th><th>Metric</th><th>Value</th></tr>
+        </thead>
+        <tbody>
+        {% for col, metrics in eda.numeric_summary.items() %}
+          {% for metric, val in metrics.items() %}
+            {% if loop.index0 < 5 %}
+            <tr><td>{{ col }}</td><td>{{ metric }}</td><td>{{ val }}</td></tr>
+            {% endif %}
+          {% endfor %}
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">No numeric summary available.</p>
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <h2>ANOVA</h2>
+    {% if anova.p_value is defined %}
+      <p>Target: {{ anova.target }} | Group By: {{ anova.group_by }}</p>
+      <p>F-stat: {{ anova.f_stat }} | p-value: {{ anova.p_value }}</p>
+      <p>
+        {% if anova.p_value < 0.05 %}
+          <span class="badge">Significant</span>
+        {% else %}
+          <span class="badge">Not Significant</span>
+        {% endif %}
+      </p>
+    {% else %}
+      <p class="muted">ANOVA not run.</p>
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <h2>Model Metrics</h2>
+    {% if model.r2 is defined %}
+      <p>R2: {{ model.r2 }} | RMSE: {{ model.rmse }}</p>
+      <p>Target: {{ model.target }}</p>
+      <p>Features: {{ model.features }}</p>
+    {% else %}
+      <p class="muted">Model not trained.</p>
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <h2>Clustering</h2>
+    {% if cluster.n_clusters > 0 %}
+      <p>Clusters: {{ cluster.n_clusters }}</p>
+      <p>Labels (sample): {{ cluster.labels[:20] }}</p>
+    {% else %}
+      <p class="muted">Clustering not run.</p>
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <h2>Recommendations</h2>
+    <ul>
+      {% for r in recommendations %}
+        <li>{{ r }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</body>
+</html>
