@@ -1,8 +1,11 @@
-from fastapi import FastAPI
+import os
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-from src.core.db import init_db
+from src.core.db import init_db, get_db
 from src.api.routers.upload import router as upload_router
 from src.api.routers.clean import router as clean_router
 from src.api.routers.eda import router as eda_router
@@ -30,10 +33,14 @@ app = FastAPI(
     openapi_tags=openapi_tags,
 )
 
-# CORS for frontend
+# CORS for frontend (allow both localhost and 127.0.0.1, overridable via env)
+default_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+env_origins = os.getenv("CORS_ALLOW_ORIGINS")
+allow_origins = [o.strip() for o in env_origins.split(",")] if env_origins else default_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,10 +50,25 @@ app.add_middleware(
 init_db()
 
 # PUBLIC_INTERFACE
-@app.get("/", summary="Health Check", tags=["Upload"])
+@app.get("/", summary="Health Check", tags=["Health"])
 def health_check():
     """Health endpoint to verify service is up."""
     return {"message": "Healthy"}
+
+# PUBLIC_INTERFACE
+@app.get(
+    "/health/db",
+    summary="Database Health Check",
+    description="Checks if the application can connect to the configured PostgreSQL database and run a simple query.",
+    tags=["Health"],
+)
+def db_health_check(db: Session = Depends(get_db)):
+    """Attempt a simple SELECT 1 to validate DB connectivity."""
+    try:
+        db.execute(text("SELECT 1"))
+        return {"database": "ok"}
+    except Exception as e:
+        return {"database": "error", "detail": str(e)}
 
 # Optional route noting WebSocket (not used but documented for completeness)
 # PUBLIC_INTERFACE

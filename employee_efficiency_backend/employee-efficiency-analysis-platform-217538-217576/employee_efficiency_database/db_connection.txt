@@ -1,0 +1,3 @@
+PostgreSQL is expected to listen on port 5001 for this project.
+Database URL example:
+postgresql://postgres:postgres@localhost:5001/employee_efficiency

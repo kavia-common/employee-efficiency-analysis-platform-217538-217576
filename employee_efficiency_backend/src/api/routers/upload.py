@@ -11,7 +11,7 @@ from src.core.schemas import UploadResponse
 
 router = APIRouter(tags=["Upload"])
 
-DATA_DIR = "employee-efficiency-analysis-platform-217538-217576/employee_efficiency_backend/data"
+DATA_DIR = os.getenv("DATA_DIR", "employee-efficiency-analysis-platform-217538-217576/employee_efficiency_backend/data")
 os.makedirs(DATA_DIR, exist_ok=True)
 
 

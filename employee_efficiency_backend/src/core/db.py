@@ -9,7 +9,11 @@ load_dotenv()
 
 # PUBLIC_INTERFACE
 def get_database_url() -> str:
-    """Return the DATABASE_URL from env, defaulting to local Postgres at port 5001."""
+    """Return the database connection URL.
+
+    Reads DATABASE_URL from environment. Defaults to:
+    postgresql+psycopg2://postgres:postgres@localhost:5001/employee_efficiency
+    """
     return os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:postgres@localhost:5001/employee_efficiency")
 
 
